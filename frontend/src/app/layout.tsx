@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Name TBD",
+  title: "PredixKit",
   description: "Tooling for Prediction Markets",
 };
 
