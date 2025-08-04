@@ -48,6 +48,7 @@ contract CreateMarket {
 
     function sellTokens(uint sellAmount) external payable {
         require(address(this).balance >= sellAmount, "I'm broke");
-        payable(msg.sender).transfer(sellAmount);
+        uint returnVal = sellAmount * price;
+        payable(msg.sender).transfer(returnVal);
     }
 }
