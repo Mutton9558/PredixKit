@@ -33,3 +33,16 @@ p {
   background-color: #5A1C6D;
   transform: scale(1);
 }
+
+.user-button {
+  background-color: #FFFFFF;
+  color: black;
+  padding: 0.5em 1em;
+  border: solid 2px #000000;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.user-button:hover {
+  background-color: #FFFFFF;
+}
