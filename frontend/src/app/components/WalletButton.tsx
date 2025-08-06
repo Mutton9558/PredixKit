@@ -39,6 +39,9 @@ const WalletDropdown = () => {
 
   return (
     <div className='wallet-dropdown'>
+      <button className='marketplace-button' onClick={() => router.push('/marketplace')}>
+        Marketplace
+      </button>
       <button className='logout-button' onClick={HandleLogout}>
         Logout
       </button>
