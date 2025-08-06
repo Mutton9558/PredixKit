@@ -1,4 +1,5 @@
 
+
 import { redirect } from 'next/navigation';
 import WalletButton from './components/WalletButton';
 import SearchButton from './components/SearchButton';

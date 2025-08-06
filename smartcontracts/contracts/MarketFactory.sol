@@ -6,6 +6,10 @@ pragma solidity ^0.8.28;
 
 import "./CreateMarket.sol";
 
+interface ICreateMarket {
+    function getTitle() external view returns (string memory);
+}
+
 contract MarketFactory {
     uint public marketCount = 0;
 
@@ -37,11 +41,48 @@ contract MarketFactory {
     }
 
     // why are solidity maps not build for iterations ;-;
-    function getMarkets(address _sender) external view returns (uint[] memory) {
+    function getUserMarkets(
+        address _sender
+    ) external view returns (uint[] memory) {
         return userMarkets[_sender];
     }
 
-    // function sendData(address market) external view returns (string[] memory) {
-    //     CreateMarket existingMarket = CreateMarket(market);
-    // }
+    // plan is, get the count, loop in frontend retrieving data in each loop
+    function getCount() external view returns (uint) {
+        return marketCount;
+    }
+
+    function getMarketAddressById(uint _id) external view returns (address) {
+        return markets[_id];
+    }
+
+    function getTitle(address market) external view returns (string memory) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.title();
+    }
+
+    function getTag(address market) external view returns (string memory) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.tag();
+    }
+
+    function getCOT(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.cutOffTime();
+    }
+
+    function getPrice(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.price();
+    }
+
+    function getYesAmount(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.yesTotal();
+    }
+
+    function getNoAmount(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.noTotal();
+    }
 }
