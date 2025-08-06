@@ -44,7 +44,7 @@ header {
 
 .search-button {
   background-color: #FFFFFF;
-  border: solid 2px #000000;
+  border: none;
   border-radius: 100%;
   height: auto;
   width: auto;
@@ -54,7 +54,8 @@ header {
 
 .search-button-extended {
   position: relative;
-  width: 40%;
+  width: auto;
+  height: 2.65em;
   background-color: #dbdbdb;
   border: none;
   display: flex;
@@ -65,24 +66,53 @@ header {
 }
 
 .search-button-extended input {
-  width: 60%;
+  width: 70%;
   padding: 0.5em;
   border: none;
   background-color: transparent;
   color: #1E1E1E;
 }
 
+.wallet-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
 .user-button {
+  display: flex;
   background-color: #FFFFFF;
   color: black;
   padding: 0.5em 1em;
   gap: 0.5em;
-  border: solid 2px #000000;
-  border-radius: 5px;
+  border: none;
+  border-radius: 1em;
   cursor: pointer;
   text-align: justify;
 }
 
 .user-button:hover {
   background-color: #FFFFFF;
+}
+
+.wallet-dropdown {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 1em;
+}
+
+.wallet-dropdown button {
+  width: 100%;
+  background-color: transparent;
+  color: black;
+  padding: 0.5em 1em;
+  border: none;
+  border-radius: 1em;
+  cursor: pointer;
+}
+
+.dashboard-container {
+  background: var(--background-color);
+  color: white;
+  min-height: 100vh;
 }
