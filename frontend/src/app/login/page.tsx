@@ -28,7 +28,7 @@ const MetaMaskLogin = () => {
       const balance = ethers.formatEther(balanceBigInt);
       console.log('Logged in with address:', address);
       setAddress(address);
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error logging in with MetaMask:', error);
     }
