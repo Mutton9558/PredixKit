@@ -28,14 +28,31 @@ const SearchButton = ({ onClick }: { onClick: () => void }) => (
   </div>
 );
 
-const SearchButtonExtended = ({ onClose }: { onClose: () => void }) => (
-  <div className="search-button-extended">
-    <Button onClick={onClose} className='search-button'>
-      <SearchIcon />
-    </Button>
-    <input style={{ marginLeft: '8px', color: '#1E1E1E' }} placeholder="Search..." />
-  </div>
-);
+const SearchButtonExtended = ({ onClose }: { onClose: () => void }) => {
+  const [query, setQuery] = useState("");
+
+  React.useEffect(() => {
+    if (query === "") return;
+    const handler = setTimeout(() => {
+      console.log("Searching for:", query);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [query]);
+
+  return (
+    <div className="search-button-extended">
+      <Button onClick={onClose} className='search-button'>
+        <SearchIcon />
+      </Button>
+      <input
+        style={{ marginLeft: '8px', color: '#1E1E1E' }}
+        placeholder="Search..."
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+    </div>
+  );
+};
 
 const SearchButtonWrapper = () => {
   const [showExtended, setShowExtended] = useState(false);
@@ -46,6 +63,6 @@ const SearchButtonWrapper = () => {
       {showExtended && <SearchButtonExtended onClose={() => setShowExtended(false)} />}
     </>
   );
-}
+};
 
 export default SearchButtonWrapper
