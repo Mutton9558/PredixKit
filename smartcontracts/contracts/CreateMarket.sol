@@ -32,6 +32,7 @@ contract CreateMarket {
         profitMultiplier = _profitMultiplier;
     }
 
+    // token things might be switched to factory idk lmfao
     function buyYesTokens() external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
         require(msg.value > 0, "Send ETH");
