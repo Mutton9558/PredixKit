@@ -9,16 +9,15 @@ function shortenAddress(address: string | null): string {
 }
 
 const Page = () => {
-  const { address } = useUser();
+  const { address, balance } = useUser();
 
   return (
-    <>
-      <div>
-        <Button onClick={() => console.log('Button clicked!')} className='user-button'>
-          <h4>{shortenAddress(address)}</h4>
-        </Button>
-      </div>
-    </>
+    <div className='wallet-button-container'  >
+      <Button onClick={() => console.log('Button clicked!')} className='user-button'>
+        <h4>{shortenAddress(address)}</h4>
+        <p>{balance !== null ? `${balance} ETH` : 'Fetching balance...'}</p>
+      </Button>
+    </div>
   );
 };
 

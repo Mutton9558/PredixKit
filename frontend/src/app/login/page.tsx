@@ -24,6 +24,8 @@ const MetaMaskLogin = () => {
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
+      const balanceBigInt = await provider.getBalance(address);
+      const balance = ethers.formatEther(balanceBigInt);
       console.log('Logged in with address:', address);
       setAddress(address);
       router.push('/');
