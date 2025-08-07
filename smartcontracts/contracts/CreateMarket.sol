@@ -13,10 +13,11 @@ contract CreateMarket {
     uint public cutOffTime;
     address public creator;
     uint public price;
-    uint public profitMultiplier;
     uint public yesTotal = 0;
     uint public noTotal = 0;
     address[] public voters;
+    address public marketOwner;
+    bool closed = false;
     mapping(address => uint256) public yesToken;
     mapping(address => uint256) public noToken;
 
@@ -25,15 +26,19 @@ contract CreateMarket {
         string memory _tag,
         uint _cutOffTime,
         address _creator,
-        uint _price,
-        uint _profitMultiplier
+        uint _price
     ) {
         title = _title;
         tag = _tag;
         cutOffTime = _cutOffTime;
         creator = _creator;
         price = _price > minPrice ? _price : minPrice;
-        profitMultiplier = _profitMultiplier / DECIMALS;
+        marketOwner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == marketOwner, "Not market owner");
+        _;
     }
 
     // token things might be switched to factory idk lmfao
@@ -62,17 +67,33 @@ contract CreateMarket {
     }
 
     function prizeDistribution(bool decision) external payable {
-        uint prizeMoney = price * profitMultiplier;
+        require(!closed, "Prediction Market closed");
+        uint balance = address(this).balance;
+        uint prizeMoney = (balance * 9) / 10;
+        require(address(this).balance >= prizeMoney, "I'm broke");
         for (uint i = 0; i < voters.length; i++) {
             if (decision == true) {
-                if (yesToken[voters[i]] > 0) {
-                    payable(voters[i]).transfer(prizeMoney);
+                uint userTokens = yesToken[voters[i]];
+                require(yesTotal > 0, "No Winners");
+                if (userTokens > 0) {
+                    payable(voters[i]).transfer(
+                        (prizeMoney / yesTotal) * userTokens
+                    );
                 }
             } else {
-                if (noToken[voters[i]] > 0) {
-                    payable(voters[i]).transfer(prizeMoney);
+                uint userTokens = noToken[voters[i]];
+                require(noTotal > 0, "No Winners");
+                if (userTokens > 0) {
+                    payable(voters[i]).transfer(
+                        (prizeMoney / noTotal) * userTokens
+                    );
                 }
             }
+            yesToken[voters[i]] = 0;
+            noToken[voters[i]] = 0;
         }
+
+        payable(marketOwner).transfer(address(this).balance);
+        closed = true;
     }
 }
