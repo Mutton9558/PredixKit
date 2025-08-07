@@ -24,13 +24,8 @@ contract MarketFactory {
         address _creator,
         uint _price
     ) external payable {
-        CreateMarket newMarket = new CreateMarket(
-            _title,
-            _tag,
-            _cutOffTime,
-            _creator,
-            _price
-        );
+        CreateMarket newMarket = new CreateMarket();
+        newMarket.createMarket(_title, _tag, _cutOffTime, _creator, _price);
         storeNewMarket(_creator, address(newMarket));
     }
 

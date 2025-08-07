@@ -21,24 +21,27 @@ contract CreateMarket {
     mapping(address => uint256) public yesToken;
     mapping(address => uint256) public noToken;
 
-    constructor(
-        string memory _title,
-        string memory _tag,
-        uint _cutOffTime,
-        address _creator,
-        uint _price
-    ) {
-        title = _title;
-        tag = _tag;
-        cutOffTime = _cutOffTime;
-        creator = _creator;
-        price = _price > minPrice ? _price : minPrice;
+    constructor() {
         marketOwner = msg.sender;
     }
 
     modifier onlyOwner() {
         require(msg.sender == marketOwner, "Not market owner");
         _;
+    }
+
+    function createMarket(
+        string memory _title,
+        string memory _tag,
+        uint _cutOffTime,
+        address _creator,
+        uint _price
+    ) public {
+        title = _title;
+        tag = _tag;
+        cutOffTime = _cutOffTime;
+        creator = _creator;
+        price = _price > minPrice ? _price : minPrice;
     }
 
     // token things might be switched to factory idk lmfao
@@ -93,7 +96,7 @@ contract CreateMarket {
             noToken[voters[i]] = 0;
         }
 
-        payable(marketOwner).transfer(address(this).balance);
+        payable(creator).transfer(address(this).balance);
         closed = true;
     }
 }
