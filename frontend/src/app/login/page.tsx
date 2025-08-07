@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react'
+import React from 'react'
 import { ethers, BrowserProvider } from 'ethers'
 import { useRouter } from 'next/navigation'
 import { useUser } from '../components/UserProfile_context'
@@ -53,30 +53,6 @@ const login = () => {
           <MetaMaskLogin />
         </div>
       </div>
-
-      <style jsx>{`
-        .login-container {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: var(--login-bg-color)
-        }
-
-      .login {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 40vh;
-        padding: 1em;
-        gap: 10em;
-        background-color: #f0f0f0;
-        color: #333;
-        border-radius: 1em;
-      }
-      `}</style>
     </>
   )
 }
