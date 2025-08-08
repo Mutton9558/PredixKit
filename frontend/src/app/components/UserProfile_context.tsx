@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useState, useEffect, useContext, ReactNode, use } from "react";
+import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { BrowserProvider, formatEther } from 'ethers';
 
 type UserContextType = {
