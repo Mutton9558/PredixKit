@@ -6,10 +6,6 @@ pragma solidity ^0.8.28;
 
 import "./CreateMarket.sol";
 
-interface ICreateMarket {
-    function getTitle() external view returns (string memory);
-}
-
 contract MarketFactory {
     uint public marketCount = 0;
 
@@ -26,17 +22,10 @@ contract MarketFactory {
         string memory _tag,
         uint _cutOffTime,
         address _creator,
-        uint _price,
-        uint _profitMultiplier
+        uint _price
     ) external payable {
-        CreateMarket newMarket = new CreateMarket(
-            _title,
-            _tag,
-            _cutOffTime,
-            _creator,
-            _price,
-            _profitMultiplier
-        );
+        CreateMarket newMarket = new CreateMarket();
+        newMarket.createMarket(_title, _tag, _cutOffTime, _creator, _price);
         storeNewMarket(_creator, address(newMarket));
     }
 
