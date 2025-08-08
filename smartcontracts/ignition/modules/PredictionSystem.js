@@ -1,9 +1,8 @@
 // ignition/modules/PredictionSystem.js
-import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
 
-export default buildModule("PredictionSystem", (m) => {
-  const market = m.contract("CreateMarket"); // First contract
-  const factory = m.contract("MarketFactory", [/* constructor args */]); // Second contract
-
+module.exports = buildModule("PredictionSystem", (m) => {
+  const market = m.contract("CreateMarket", []);
+  const factory = m.contract("MarketFactory", []);
   return { market, factory };
 });
