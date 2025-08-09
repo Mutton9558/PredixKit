@@ -1,6 +1,6 @@
-
-import React from 'react'
-import MetaMaskLogin from '../components/MetaMaskLogin'
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
+import MetaMaskLogin from "../components/MetaMaskLogin";
 
 const login = () => {
   const router = useRouter();

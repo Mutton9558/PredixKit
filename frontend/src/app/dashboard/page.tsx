@@ -287,7 +287,6 @@ let pastMarketList: any[] = [];
 
 
 const dashboard = () => {
-  const address = localStorage.getItem("userAddress");
   const router = useRouter();
   useEffect(() => {
     const address = localStorage.getItem("userAddress");
