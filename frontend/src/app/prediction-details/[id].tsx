@@ -24,10 +24,7 @@ const PredictionDetails = () => {
         </div>
         <div className="header-right">
           <SearchButtonWrapper />
-          <div className="deposits-info">
-            <span className="deposits-label">Deposits</span>
-            <span className="deposits-amount">$0.00</span>
-          </div>
+          <WalletButtonWrapper />
         </div>
       </header>
 
@@ -36,9 +33,9 @@ const PredictionDetails = () => {
         {/* Prediction Card */}
         <div className="prediction-details-card">
           <div className="prediction-image">
-            <img 
-              src="/api/placeholder/400/200" 
-              alt="Prediction" 
+            <img
+              src="/api/placeholder/400/200"
+              alt="Prediction"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '1em' }}
             />
           </div>
@@ -71,34 +68,39 @@ const PredictionDetails = () => {
           <div className="spirits-section">
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
-              <button 
+              <button
                 className={`spirits-tab ${selectedTab === 'Buy' ? 'active' : ''}`}
                 onClick={() => setSelectedTab('Buy')}
               >
                 Buy
               </button>
-              <button 
+              <button
                 className={`spirits-tab ${selectedTab === 'Sell' ? 'active' : ''}`}
                 onClick={() => setSelectedTab('Sell')}
               >
                 Sell
               </button>
             </div>
-            <div className="quantity-controls">
-              <button 
-                className="quantity-btn"
-                onClick={() => setSpiritQuantity(Math.max(1, spiritQuantity - 1))}
-              >
-                ▲
-              </button>
-              <div className="quantity-display">{spiritQuantity}</div>
-              <button 
-                className="quantity-btn"
-                onClick={() => setSpiritQuantity(spiritQuantity + 1)}
-              >
-                ▼
-              </button>
+            <div className="spirits-amount">
+              <div className='quantity-amount'>
+                <div className="quantity-display">{spiritQuantity}</div>
+              </div>
+              <div className="quantity-controls">
+                <button
+                  className="quantity-btn"
+                  onClick={() => setSpiritQuantity(spiritQuantity + 1)}
+                >
+                  ▲
+                </button>
+                <button
+                  className="quantity-btn"
+                  onClick={() => setSpiritQuantity(Math.max(1, spiritQuantity - 1))}
+                >
+                  ▼
+                </button>
+              </div>
             </div>
+
             <button className="confirm-btn">Confirm</button>
           </div>
         </div>

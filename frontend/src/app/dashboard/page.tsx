@@ -1,11 +1,10 @@
 "use client";
-import React from "react";
-import { useEffect } from "react";
-import { useUser } from "../components/UserProfile_context";
+import React, { useEffect } from "react";
 import SearchButtonWrapper from "../components/SearchButton";
 import WalletButtonWrapper from "../components/WalletButton";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import PredictionCard from "../components/PredictionCard";
+import { useRouter } from "next/navigation";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
@@ -288,6 +287,7 @@ let pastMarketList: any[] = [];
 
 const dashboard = () => {
   const address = localStorage.getItem("userAddress");
+  const router = useRouter();
   useEffect(() => {
     const getMarkets = async () => {
       try {
@@ -331,6 +331,7 @@ const dashboard = () => {
     };
     getMarkets();
   }, []);
+
   return (
     <>
       <div className="dashboard-bg">
@@ -339,7 +340,9 @@ const dashboard = () => {
           <WalletButtonWrapper />
         </header>
         <div className="dashboard-content">
-          <button className="create-btn">
+          <button className="create-btn" onClick={() => {
+            router.push('/new-prediction/');
+          }}>
             <span style={{ fontSize: "1.5em", marginRight: "0.5em" }}>+</span>
             Create New Prediction
           </button>
