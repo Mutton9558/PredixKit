@@ -4,17 +4,21 @@ pragma solidity ^0.8.28;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-uint256 constant DECIMALS = 100;
 uint256 constant minPrice = 0.05 ether;
 
 contract CreateMarket {
     string public title;
     string public tag;
     uint public cutOffTime;
+    uint public endTime;
+    uint public creationDate;
     address public creator;
-    uint public price;
+    uint public yesPrice;
+    uint public noPrice;
     uint public yesTotal = 0;
     uint public noTotal = 0;
+    uint[] public yesByTime;
+    uint[] public noByTime;
     address[] public voters;
     address public marketOwner;
     bool closed = false;
@@ -23,6 +27,7 @@ contract CreateMarket {
 
     constructor() {
         marketOwner = msg.sender;
+        creationDate = block.timestamp;
     }
 
     modifier onlyOwner() {
@@ -34,43 +39,76 @@ contract CreateMarket {
         string memory _title,
         string memory _tag,
         uint _cutOffTime,
+        uint _endTime,
         address _creator,
-        uint _price
+        uint _yesPrice,
+        uint _noPrice
     ) public {
         title = _title;
         tag = _tag;
         cutOffTime = _cutOffTime;
+        endTime = _endTime;
         creator = _creator;
-        price = _price > minPrice ? _price : minPrice;
+        yesPrice = _yesPrice > minPrice ? _yesPrice : minPrice;
+        noPrice = _noPrice > minPrice ? _noPrice : minPrice;
+    }
+
+    function _ensureLengthUintArray(uint[] storage arr, uint index) internal {
+        while (arr.length <= index) {
+            arr.push(0);
+        }
     }
 
     // token things might be switched to factory idk lmfao
     function buyYesTokens() external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
-        require(msg.value > 0, "Send ETH");
+        require(msg.value > yesPrice, "Send ETH");
 
-        yesToken[msg.sender] += (msg.value / price);
+        yesToken[msg.sender] += (msg.value / yesPrice);
         voters.push(msg.sender);
-        yesTotal += (msg.value / price);
+        yesTotal += (msg.value / yesPrice);
+
+        // I am piratesoftware
+        uint index;
+        if ((endTime - creationDate) <= 86400) {
+            index = (block.timestamp - creationDate) / 3600;
+            _ensureLengthUintArray(yesByTime, index);
+            yesByTime[index] = yesTotal;
+        } else {
+            index = (block.timestamp - creationDate) / 86400;
+            _ensureLengthUintArray(yesByTime, index);
+            yesByTime[index] = yesTotal;
+        }
     }
 
     function buyNoTokens() external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
-        require(msg.value > 0, "Send ETH");
+        require(msg.value > noPrice, "Send ETH");
 
-        noToken[msg.sender] += (msg.value / price);
+        noToken[msg.sender] += (msg.value / noPrice);
         voters.push(msg.sender);
-        noTotal += (msg.value / price);
+        noTotal += (msg.value / noPrice);
+
+        uint index;
+        if ((endTime - creationDate) <= 86400) {
+            index = (block.timestamp - creationDate) / 3600;
+            _ensureLengthUintArray(noByTime, index);
+            noByTime[index] = noTotal;
+        } else {
+            index = (block.timestamp - creationDate) / 86400;
+            _ensureLengthUintArray(noByTime, index);
+            noByTime[index] = noTotal;
+        }
     }
 
     function sellTokens(uint sellAmount) external payable {
         require(address(this).balance >= sellAmount, "I'm broke");
-        uint returnVal = sellAmount * price;
+        uint returnVal = sellAmount * noPrice;
         payable(msg.sender).transfer(returnVal);
     }
 
     function prizeDistribution(bool decision) external payable {
-        require(!closed, "Prediction Market closed");
+        require(closed, "Prediction Market opened");
         uint balance = address(this).balance;
         uint prizeMoney = (balance * 9) / 10;
         require(address(this).balance >= prizeMoney, "I'm broke");
@@ -97,6 +135,13 @@ contract CreateMarket {
         }
 
         payable(creator).transfer(address(this).balance);
-        closed = true;
+    }
+
+    function getYesByTime() external view returns (uint[] memory) {
+        return yesByTime;
+    }
+
+    function getNoByTime() external view returns (uint[] memory) {
+        return noByTime;
     }
 }

@@ -285,10 +285,15 @@ const ABI = [
 let ongoingMarketList: any[] = [];
 let pastMarketList: any[] = [];
 
+
 const dashboard = () => {
   const address = localStorage.getItem("userAddress");
   const router = useRouter();
   useEffect(() => {
+    const address = localStorage.getItem("userAddress");
+    if (!address) {
+      router.push("/login");
+    }
     const getMarkets = async () => {
       try {
         const provider = new BrowserProvider(window.ethereum);
@@ -306,19 +311,23 @@ const dashboard = () => {
               userMarkets[i]
             );
             let marketTitle = await contract.getTitle(marketAddress);
-            let marketPrice = await contract.getPrice(marketAddress);
+            let predictionMoney = await contract.getAccumulatedAmount(
+              marketAddress
+            );
             let marketTag = await contract.getTag(marketAddress);
-            let marketCutOffTime = Number(await contract.getCOT(marketAddress));
+            let marketEndTime = Number(
+              await contract.getEndTime(marketAddress)
+            );
             let now = Math.floor(Date.now() / 1000);
             let marketInfo = {
               Title: marketTitle,
-              Price: marketPrice,
+              PredictionMoney: predictionMoney,
               Tag: marketTag,
             };
 
-            if (now <= marketCutOffTime) {
+            if (now <= marketEndTime) {
               ongoingMarketList.push(marketInfo);
-            } else if (now > marketCutOffTime) {
+            } else if (now > marketEndTime) {
               pastMarketList.push(marketInfo);
             } else {
               console.log("Error getting time");
@@ -352,7 +361,7 @@ const dashboard = () => {
               {ongoingMarketList.map((prediction) => (
                 <PredictionCard
                   title={prediction.Title}
-                  price={prediction.Price}
+                  predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
                 />
               ))}
@@ -367,7 +376,7 @@ const dashboard = () => {
               {pastMarketList.map((prediction) => (
                 <PredictionCard
                   title={prediction.Title}
-                  price={prediction.Price}
+                  predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
                 />
               ))}

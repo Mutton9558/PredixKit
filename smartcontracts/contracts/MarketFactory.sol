@@ -21,11 +21,21 @@ contract MarketFactory {
         string memory _title,
         string memory _tag,
         uint _cutOffTime,
+        uint _endTime,
         address _creator,
-        uint _price
+        uint _yesPrice,
+        uint _noPrice
     ) external payable {
         CreateMarket newMarket = new CreateMarket();
-        newMarket.createMarket(_title, _tag, _cutOffTime, _creator, _price);
+        newMarket.createMarket(
+            _title,
+            _tag,
+            _cutOffTime,
+            _endTime,
+            _creator,
+            _yesPrice,
+            _noPrice
+        );
         storeNewMarket(_creator, address(newMarket));
     }
 
@@ -60,9 +70,14 @@ contract MarketFactory {
         return indexedMarket.cutOffTime();
     }
 
-    function getPrice(address market) external view returns (uint) {
+    function getYesPrice(address market) external view returns (uint) {
         CreateMarket indexedMarket = CreateMarket(market);
-        return indexedMarket.price();
+        return indexedMarket.yesPrice();
+    }
+
+    function getNoPrice(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.noPrice();
     }
 
     function getYesAmount(address market) external view returns (uint) {
@@ -73,5 +88,29 @@ contract MarketFactory {
     function getNoAmount(address market) external view returns (uint) {
         CreateMarket indexedMarket = CreateMarket(market);
         return indexedMarket.noTotal();
+    }
+
+    function getAccumulatedAmount(address market) external view returns (uint) {
+        return address(market).balance;
+    }
+
+    function getCreationDate(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.creationDate();
+    }
+
+    function getEndTime(address market) external view returns (uint) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.endTime();
+    }
+
+    function getYesDist(address market) external view returns (uint[] memory) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.getYesByTime();
+    }
+
+    function getNoDist(address market) external view returns (uint[] memory) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.getNoByTime();
     }
 }
