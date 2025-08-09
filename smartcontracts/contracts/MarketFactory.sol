@@ -47,6 +47,24 @@ contract MarketFactory {
         storeNewMarket(_creator, address(newMarket));
     }
 
+    function userBuy(address market, bool transactionType) external payable {
+        CreateMarket indexedMarket = CreateMarket(market);
+        if (transactionType == true) {
+            indexedMarket.buyYesTokens{value: msg.value}();
+        } else {
+            indexedMarket.buyNoTokens{value: msg.value}();
+        }
+    }
+
+    function userSell(
+        address market,
+        uint sellAmount,
+        bool transactionType
+    ) external payable {
+        CreateMarket indexedMarket = CreateMarket(market);
+        indexedMarket.sellTokens(sellAmount, transactionType);
+    }
+
     // why are solidity maps not build for iterations ;-;
     function getUserMarkets(
         address _sender
@@ -76,6 +94,11 @@ contract MarketFactory {
     function getCOT(address market) external view returns (uint) {
         CreateMarket indexedMarket = CreateMarket(market);
         return indexedMarket.cutOffTime();
+    }
+
+    function getOwner(address market) external view returns (address) {
+        CreateMarket indexedMarket = CreateMarket(market);
+        return indexedMarket.creator();
     }
 
     function getYesPrice(address market) external view returns (uint) {

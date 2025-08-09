@@ -62,7 +62,7 @@ contract CreateMarket {
     // token things might be switched to factory idk lmfao
     function buyYesTokens() external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
-        require(msg.value > yesPrice, "Send ETH");
+        require(msg.value >= yesPrice, "Send ETH");
 
         yesToken[msg.sender] += (msg.value / yesPrice);
         voters.push(msg.sender);
@@ -83,7 +83,7 @@ contract CreateMarket {
 
     function buyNoTokens() external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
-        require(msg.value > noPrice, "Send ETH");
+        require(msg.value >= noPrice, "Send ETH");
 
         noToken[msg.sender] += (msg.value / noPrice);
         voters.push(msg.sender);
@@ -101,11 +101,18 @@ contract CreateMarket {
         }
     }
 
-    function sellTokens(uint sellAmount) external payable {
+    function sellTokens(uint sellAmount, bool tokenType) external payable {
         require(block.timestamp < cutOffTime, "Betting closed");
         require(address(this).balance >= sellAmount, "I'm broke");
-        uint returnVal = sellAmount * noPrice;
-        payable(msg.sender).transfer(returnVal);
+        if (tokenType == true) {
+            uint attemptedSoldToken = sellAmount * yesPrice;
+            require(yesToken[msg.sender] >= sellAmount, "Not enough tokens");
+            payable(msg.sender).transfer(attemptedSoldToken);
+        } else {
+            uint attemptedSoldToken = sellAmount * noPrice;
+            require(noToken[msg.sender] >= sellAmount, "Not enough tokens");
+            payable(msg.sender).transfer(attemptedSoldToken);
+        }
     }
 
     function prizeDistribution(bool decision) external payable {
