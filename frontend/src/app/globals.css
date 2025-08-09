@@ -17,9 +17,11 @@ p {
 
 header {
   display: flex;
-  justify-content: flex-end;
-  gap: 1em;
-  padding: 1em;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em 2em;
+  background: transparent;
+  color: #fff;
 }
 
 .login-container {
@@ -44,7 +46,8 @@ header {
   border-radius: 1em;
 }
 
-.login-button {
+.login-button,
+.result-choice-section button {
   background-color: #682A8D;
   color: white;
   border: none;
@@ -161,7 +164,6 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 1em 2em;
-  background: #222;
   color: #fff;
   font-size: 1.1em;
 }
@@ -208,13 +210,16 @@ header {
   padding: 0.7em 2em;
   margin-bottom: 2em;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out, color 0.2s ease-in-out;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 .create-btn:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: scale(1.05);
+  background-color: #FFFFFF;
+  color: #000000;
 }
+
 
 .section {
   margin-bottom: 2em;
@@ -228,6 +233,7 @@ header {
 }
 
 .section-inner {
+  display: grid;
   background: #fff;
   border-radius: 1em;
   padding: 1.5em 1em 1em 1em;
@@ -272,6 +278,8 @@ header {
   font-size: 1.1em;
   font-weight: bold;
   margin-bottom: 0.7em;
+  text-decoration: none;
+  color: #000000;
 }
 
 .prediction-buttons {
@@ -577,12 +585,11 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
   height: 38px;
   background: #b9fbc0;
   padding: 1%;
   border-radius: 0.7em;
-  flex-shrink: 0;
+  padding: 0 1em;
 }
 
 .bottom-section {
@@ -624,7 +631,7 @@ header {
 .chart-placeholder {
   width: 100%;
   height: 100%;
-  background: #ff6b6b;
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -754,38 +761,6 @@ header {
   transform: scale(1);
 }
 
-.marketplace {
-  background: #672090;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.createnewmarket {
-  background-color: white;
-  text-decoration: black;
-  padding: 6;
-  font-family: Arial, Helvetica, sans-serif;
-  align-items: center;
-}
-
-.ongoingpredictions {
-  margin-bottom: 8;
-}
-
-.ongoingpredictionsh2 {
-  text-size-adjust: large;
-  margin-bottom: 4;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.pastgoingpredictionsh2 {
-  text-size-adjust: large;
-  margin-bottom: 4;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.marketrec {
-  background: white;
-  padding: 4;
-  text-decoration: black;
-  border-radius: 2;
+.marketplace-container {
+  display: grid;
 }

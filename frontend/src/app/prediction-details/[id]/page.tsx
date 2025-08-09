@@ -450,6 +450,7 @@ const PredictionDetails = () => {
   const [yesData, setYesData] = useState<number[]>([]);
   const [noData, setNoData] = useState<number[]>([]);
   const [clientDate, setClientDate] = useState<string | null>(null);
+  const [Expired, setExpired] = useState(false);
 
   // Ref for the chart canvas
   const chartRef = useRef<Chart | null>(null);
@@ -592,6 +593,49 @@ const PredictionDetails = () => {
     };
   }, [dataChart, options]);
 
+  useEffect(() => {
+    const check = () => {
+      setExpired(Date.now() >= endTime * 1000);
+    };
+    check();
+    const id = setInterval(check, 1000);
+    return () => clearInterval(id);
+  }, [endTime]);
+
+  const ResultSection = () => {
+    return (
+      <div className="result-section">
+        {Expired ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1em' }}>
+            <div className="status-indicator-ended">
+              <p>Ended</p>
+            </div>
+            <ResultChoice />
+          </div>
+        ) : (
+          <div className="status-indicator-ongoing">
+            <p>Ongoing</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ResultChoice = () => {
+    return (
+      <>
+        <div className="result-choice-section">
+          <button>Finalize the Verdict!</button>
+        </div>
+        <div className="result-choice" style={{ display: 'none' }}>
+          <button className="result-button">Choose Yes</button>
+          <button className="result-button">Choose No</button>
+        </div>
+
+      </>
+    );
+  };
+
   const handleBackToHome = () => {
     router.push("/dashboard");
   };
@@ -615,18 +659,6 @@ const PredictionDetails = () => {
       <div className="prediction-details-content">
         {/* Prediction Card */}
         <div className="prediction-details-card">
-          <div className="prediction-image">
-            <img
-              src="/api/placeholder/400/200"
-              alt="Prediction"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "1em",
-              }}
-            />
-          </div>
           <div className="prediction-info">
             <h2 className="prediction-title">{title}</h2>
             <p className="prediction-deadline">
@@ -635,7 +667,7 @@ const PredictionDetails = () => {
             <div className="prediction-tags">{tag}</div>
           </div>
           <div className="prediction-status">
-            <div className="status-indicator"></div>
+            <ResultSection />
           </div>
         </div>
 
@@ -654,17 +686,15 @@ const PredictionDetails = () => {
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
               <button
-                className={`spirits-tab ${
-                  selectedTab === "Buy" ? "active" : ""
-                }`}
+                className={`spirits-tab ${selectedTab === "Buy" ? "active" : ""
+                  }`}
                 onClick={() => setSelectedTab("Buy")}
               >
                 Buy
               </button>
               <button
-                className={`spirits-tab ${
-                  selectedTab === "Sell" ? "active" : ""
-                }`}
+                className={`spirits-tab ${selectedTab === "Sell" ? "active" : ""
+                  }`}
                 onClick={() => setSelectedTab("Sell")}
               >
                 Sell
