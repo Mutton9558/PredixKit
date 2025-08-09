@@ -513,6 +513,7 @@ const PredictionDetails = () => {
   const [noData, setNoData] = useState<number[]>([]);
   const [clientDate, setClientDate] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState("Yes");
+  const [Expired, setExpired] = useState(false);
 
   // Ref for the chart canvas
   const chartRef = useRef<Chart | null>(null);
@@ -557,7 +558,6 @@ const PredictionDetails = () => {
       const dateString = endDate.toLocaleString();
 
       setClientDate(`${dateString}`);
-
     }
   }, [endTime]);
 
@@ -701,6 +701,36 @@ const PredictionDetails = () => {
     router.push("/dashboard");
   };
 
+  useEffect(() => {
+    const check = () => {
+      setExpired(Date.now() >= endTime * 1000);
+    };
+    check();
+    const id = setInterval(check, 1000);
+    return () => clearInterval(id);
+  }, [endTime]);
+
+  const ResultSection = () => {
+    return (
+      <div className="result-section">
+        {Expired ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1em' }}>
+            <div className="status-indicator-ended">
+              <p>Ended</p>
+            </div>
+            <div className="result">
+              Winners:{" "}
+            </div>
+          </div>
+        ) : (
+          <div className="status-indicator-ongoing">
+            <p>Ongoing</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="prediction-details-container">
       {/* Header */}
@@ -728,7 +758,7 @@ const PredictionDetails = () => {
             <div className="prediction-tags">{tag}</div>
           </div>
           <div className="prediction-status">
-            <div className="status-indicator"></div>
+            <ResultSection />
           </div>
         </div>
 
