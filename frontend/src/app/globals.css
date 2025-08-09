@@ -317,8 +317,8 @@ header {
 .prediction-title,
 .trade-card .prediction-title {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  --webkit-line-clamp: 2;
+  --webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.25em;
   /* consistent line height */
@@ -1596,7 +1596,7 @@ header {
   outline: none;
   padding: 0;
   box-shadow: none;
-  -moz-appearance: textfield;
+  --moz-appearance: textfield;
 }
 
 .prediction-details-container .spirits-section .spirits-quantity.single-input .spirits-quantity-input:focus {
@@ -1837,7 +1837,7 @@ header {
   outline: none;
   padding: 0;
   box-shadow: none;
-  -moz-appearance: textfield;
+  --moz-appearance: textfield;
 }
 
 .prediction-details-container .spirits-section .spirits-quantity.single-input .spirits-quantity-input:focus {
@@ -2078,7 +2078,7 @@ header {
   outline: none;
   padding: 0;
   box-shadow: none;
-  -moz-appearance: textfield;
+  --moz-appearance: textfield;
 }
 
 .prediction-details-container .spirits-section .spirits-quantity.single-input .spirits-quantity-input:focus {
@@ -2319,7 +2319,7 @@ header {
   outline: none;
   padding: 0;
   box-shadow: none;
-  -moz-appearance: textfield;
+  --moz-appearance: textfield;
 }
 
 .prediction-details-container .spirits-section .spirits-quantity.single-input .spirits-quantity-input:focus {

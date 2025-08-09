@@ -486,11 +486,20 @@ const page = () => {
     }
   };
 
+  const handleBack = () => router.push("/dashboard");
+
   return (
     <div className="new-prediction-container">
-      <header>
-        <SearchButtonWrapper />
-        <WalletButtonWrapper />
+      <header className="prediction-details-header">
+        <div className="header-left">
+          <button className="back-button" onClick={handleBack}>
+            ← Back to Home
+          </button>
+        </div>
+        <div className="header-right">
+          <SearchButtonWrapper />
+          <WalletButtonWrapper />
+        </div>
       </header>
       <div className="newPredictionForm-Container">
         <div className="newPredictionForm">

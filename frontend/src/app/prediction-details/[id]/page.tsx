@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect, useRef } from "react";
 import { ethers, BrowserProvider } from "ethers";
 import { useParams, useRouter } from "next/navigation";
@@ -237,6 +237,34 @@ const PredictionDetails = () => {
     return () => clearInterval(id);
   }, [endTime]);
 
+  const handleBack = () => router.push("/dashboard")
+
+  // Handlers
+  const clampQuantity = () => {
+    if (spiritQuantity === "" || Number(spiritQuantity) < 1) setSpiritQuantity("1");
+    else if (Number(spiritQuantity) > 99) setSpiritQuantity("99");
+  };
+  const inc = () => {
+    const n = Number(spiritQuantity || "0");
+    setSpiritQuantity(String(Math.min(99, n + 1 || 1)));
+  };
+  const dec = () => {
+    const n = Number(spiritQuantity || "0");
+    setSpiritQuantity(String(Math.max(1, n - 1 || 1)));
+  };
+
+  const confirmTrade = () => {
+    clampQuantity();
+    // Here you can integrate a contract call:
+    // mode = selectedTab.toLowerCase(), side = tradeSide, amount = Number(spiritQuantity)
+    console.log("Submit trade", {
+      mode: selectedTab.toLowerCase(),
+      side: tradeSide,
+      amount: Number(spiritQuantity),
+    });
+  };
+
+
   const ResultSection = () => {
     return (
       <div className="result-section">
@@ -269,10 +297,6 @@ const PredictionDetails = () => {
 
       </>
     );
-  };
-
-  const handleBackToHome = () => {
-    router.push("/dashboard");
   };
 
   return (

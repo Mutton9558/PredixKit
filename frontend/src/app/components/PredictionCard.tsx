@@ -1,3 +1,4 @@
+'use client';
 import { id } from "ethers";
 import Link from "next/link";
 import React, { useState } from 'react'   // removed useEffect, useMemo
@@ -72,10 +73,10 @@ export const PredictionTradeCard: React.FC<PredictionTradeCardProps> = ({
           min={1}
           max={99}
           value={amount}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              setAmount(Math.min(99, Math.max(1, v)));
-            }}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            setAmount(Math.min(99, Math.max(1, v)));
+          }}
           aria-label="Adjust amount"
         />
         <div className="trade-slider-controls">
@@ -112,7 +113,7 @@ export const PredictionTradeCard: React.FC<PredictionTradeCardProps> = ({
 };
 
 /* Base card now swaps to trade card */
-const PredictionCard = ({ title, price, tag }: PredictionCardProps) => {
+const PredictionCard = ({ title, predictionMoney, tag, id }: PredictionCardProps) => {
   const [tradeSide, setTradeSide] = useState<TradeSide | null>(null);
 
   // When a side is selected, show trade card instead
