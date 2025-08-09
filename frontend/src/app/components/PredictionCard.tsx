@@ -1,12 +1,16 @@
-import React from 'react'
+import React from "react";
 
 interface PredictionCardProps {
   title: string;
-  price: number;
+  predictionMoney: number;
   tag: string;
 }
 
-const PredictionCard = ({ title, price, tag }: PredictionCardProps) => {
+const PredictionCard = ({
+  title,
+  predictionMoney,
+  tag,
+}: PredictionCardProps) => {
   return (
     <div className="prediction-card">
       <div className="prediction-main">
@@ -16,7 +20,7 @@ const PredictionCard = ({ title, price, tag }: PredictionCardProps) => {
           <button className="no-btn">No</button>
         </div>
         <div className="prediction-meta">
-          {price}ETH • {tag}
+          {predictionMoney}ETH • {tag}
         </div>
       </div>
       <div className="status-box"></div>
@@ -25,4 +29,4 @@ const PredictionCard = ({ title, price, tag }: PredictionCardProps) => {
   );
 };
 
-export default PredictionCard
+export default PredictionCard;
