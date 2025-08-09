@@ -515,7 +515,7 @@ const Dashboard = () => {
   return (
     <>
       <div className="dashboard-bg">
-        <header>
+        <header className="dashboard-header">
           <SearchButtonWrapper />
           <WalletButtonWrapper />
         </header>
