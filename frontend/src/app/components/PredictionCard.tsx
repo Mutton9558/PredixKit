@@ -681,11 +681,7 @@ const PredictionCard = ({
   return (
     <div className="prediction-card">
       <div className="prediction-main">
-        <Link
-          className="prediction-title"
-          title={title}
-          href={`/prediction-details/${id}`}
-        >
+        <Link className="prediction-title" title={title} href={`/prediction-details/${id}`} style={{ cursor: 'pointer' }}>
           {title}
         </Link>
       </div>

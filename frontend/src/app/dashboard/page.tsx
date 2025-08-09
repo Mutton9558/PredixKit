@@ -545,9 +545,6 @@ const Dashboard = () => {
               {ongoingMarketList.length === 0 && (
                 <div>No ongoing predictions</div>
               )}
-              <div className="see-more">
-                see more <span className="icon">&#8635;</span>
-              </div>
             </div>
           </div>
 
@@ -564,9 +561,6 @@ const Dashboard = () => {
                 />
               ))}
               {pastMarketList.length === 0 && <div>No past predictions</div>}
-              <div className="see-more">
-                see more <span className="icon">&#8635;</span>
-              </div>
             </div>
           </div>
         </div>
