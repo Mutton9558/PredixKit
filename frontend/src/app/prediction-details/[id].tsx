@@ -1,13 +1,38 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
-import { useRouter } from "next/router";
+import { useParams, useRouter } from "next/navigation";
 import Chart from "chart.js/auto";
 import SearchButtonWrapper from "../components/SearchButton";
 import WalletButtonWrapper from "../components/WalletButton";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "marketAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "marketId",
+        type: "uint256",
+      },
+    ],
+    name: "MarketCreated",
+    type: "event",
+  },
   {
     inputs: [
       {
@@ -26,19 +51,48 @@ const ABI = [
         type: "uint256",
       },
       {
+        internalType: "uint256",
+        name: "_endTime",
+        type: "uint256",
+      },
+      {
         internalType: "address",
         name: "_creator",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_price",
+        name: "_yesPrice",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_noPrice",
         type: "uint256",
       },
     ],
     name: "createMarket",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getAccumulatedAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -63,6 +117,44 @@ const ABI = [
   {
     inputs: [],
     name: "getCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getCreationDate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getEndTime",
     outputs: [
       {
         internalType: "uint256",
@@ -119,7 +211,26 @@ const ABI = [
         type: "address",
       },
     ],
-    name: "getPrice",
+    name: "getNoDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getNoPrice",
     outputs: [
       {
         internalType: "uint256",
@@ -207,6 +318,44 @@ const ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "marketCount",
     outputs: [
@@ -283,7 +432,8 @@ const ABI = [
 ];
 const PredictionDetails = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const params = useParams();
+  const id = params.id;
   const [selectedTab, setSelectedTab] = useState("Buy");
   const [spiritQuantity, setSpiritQuantity] = useState(1);
 
@@ -324,6 +474,8 @@ const PredictionDetails = () => {
             marketAddress
           );
           let cd = await contract.getCreationDate(marketAddress);
+          let yd = await contract.getYesDist(marketAddress);
+          let nd = await contract.getNoDist(marketAddress);
 
           setTitle(mtitle);
           setTag(mtag);
@@ -332,6 +484,8 @@ const PredictionDetails = () => {
           setNoPrice(mnoprice);
           setAccumulatedMoney(maccumulateddolla);
           setCreationDate(cd);
+          setYesData(yd);
+          setNoData(nd);
         }
       } catch (err: any) {
         console.log("Error linking frontend to smart contract", err);
@@ -341,7 +495,6 @@ const PredictionDetails = () => {
     connectSmartContract();
   }, []);
 
-  
   let duration = endTime - creationDate;
   let label = [];
   if (duration <= 86400) {
@@ -362,7 +515,7 @@ const PredictionDetails = () => {
     labels[i] = label[i];
   }
 
-  const data = {
+  const dataChart = {
     labels: labels,
     datasets: [
       {
@@ -398,9 +551,12 @@ const PredictionDetails = () => {
       },
     },
   };
-  // if (ctx) {
-  //   const chart = new Chart(ctx, {});
-  // }
+  if (ctx) {
+    const chart = new Chart(ctx, {
+      type: "line",
+      data: dataChart,
+    });
+  }
 
   const handleBackToHome = () => {
     router.push("/dashboard");
@@ -462,8 +618,7 @@ const PredictionDetails = () => {
             <div className="chart-container">
               {/* Placeholder for chart - you can integrate a charting library here */}
               <div className="chart-placeholder">
-                <p>Chart will be displayed here</p>
-                <p>Consider using libraries like Chart.js, Recharts, or D3.js</p>
+                <canvas id="chart-diagram"></canvas>
               </div>
             </div>
           </div>
@@ -473,20 +628,24 @@ const PredictionDetails = () => {
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
               <button
-                className={`spirits-tab ${selectedTab === 'Buy' ? 'active' : ''}`}
-                onClick={() => setSelectedTab('Buy')}
+                className={`spirits-tab ${
+                  selectedTab === "Buy" ? "active" : ""
+                }`}
+                onClick={() => setSelectedTab("Buy")}
               >
                 Buy
               </button>
               <button
-                className={`spirits-tab ${selectedTab === 'Sell' ? 'active' : ''}`}
-                onClick={() => setSelectedTab('Sell')}
+                className={`spirits-tab ${
+                  selectedTab === "Sell" ? "active" : ""
+                }`}
+                onClick={() => setSelectedTab("Sell")}
               >
                 Sell
               </button>
             </div>
             <div className="spirits-amount">
-              <div className='quantity-amount'>
+              <div className="quantity-amount">
                 <div className="quantity-display">{spiritQuantity}</div>
               </div>
               <div className="quantity-controls">
@@ -498,7 +657,9 @@ const PredictionDetails = () => {
                 </button>
                 <button
                   className="quantity-btn"
-                  onClick={() => setSpiritQuantity(Math.max(1, spiritQuantity - 1))}
+                  onClick={() =>
+                    setSpiritQuantity(Math.max(1, spiritQuantity - 1))
+                  }
                 >
                   ▼
                 </button>

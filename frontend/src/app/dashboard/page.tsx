@@ -1,13 +1,38 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SearchButtonWrapper from "../components/SearchButton";
 import WalletButtonWrapper from "../components/WalletButton";
-import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
+import { ethers, BrowserProvider } from "ethers";
 import PredictionCard from "../components/PredictionCard";
 import { useRouter } from "next/navigation";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "marketAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "marketId",
+        type: "uint256",
+      },
+    ],
+    name: "MarketCreated",
+    type: "event",
+  },
   {
     inputs: [
       {
@@ -26,19 +51,48 @@ const ABI = [
         type: "uint256",
       },
       {
+        internalType: "uint256",
+        name: "_endTime",
+        type: "uint256",
+      },
+      {
         internalType: "address",
         name: "_creator",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_price",
+        name: "_yesPrice",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_noPrice",
         type: "uint256",
       },
     ],
     name: "createMarket",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getAccumulatedAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -63,6 +117,44 @@ const ABI = [
   {
     inputs: [],
     name: "getCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getCreationDate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getEndTime",
     outputs: [
       {
         internalType: "uint256",
@@ -119,7 +211,26 @@ const ABI = [
         type: "address",
       },
     ],
-    name: "getPrice",
+    name: "getNoDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getNoPrice",
     outputs: [
       {
         internalType: "uint256",
@@ -207,6 +318,44 @@ const ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "marketCount",
     outputs: [
@@ -282,63 +431,85 @@ const ABI = [
   },
 ];
 
-let ongoingMarketList: any[] = [];
-let pastMarketList: any[] = [];
-
-
-const dashboard = () => {
+const Dashboard = () => {
   const router = useRouter();
+
+  const [ongoingMarketList, setOngoingMarketList] = useState<any[]>([]);
+  const [pastMarketList, setPastMarketList] = useState<any[]>([]);
+
   useEffect(() => {
     const address = localStorage.getItem("userAddress");
     if (!address) {
       router.push("/login");
+      return;
     }
+
     const getMarkets = async () => {
       try {
         const provider = new BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
+
         if (CONTRACT_ADDRESS) {
           const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
           const network = await provider.getNetwork();
           if (Number(network.chainId) !== 31337) {
             throw new Error("Switch MetaMask to Hardhat local network");
           }
+
           const userMarkets = await contract.getUserMarkets(address);
 
+          const ongoing: any[] = [];
+          const past: any[] = [];
+
           for (let i = 0; i < userMarkets.length; i++) {
-            let marketAddress = await contract.getMarketAddressById(
+            const marketAddress = await contract.getMarketAddressById(
               userMarkets[i]
             );
-            let marketTitle = await contract.getTitle(marketAddress);
-            let predictionMoney = await contract.getAccumulatedAmount(
+            const marketTitle = await contract.getTitle(marketAddress);
+            console.log(marketTitle);
+            const predictionMoney = await contract.getAccumulatedAmount(
               marketAddress
             );
-            let marketTag = await contract.getTag(marketAddress);
-            let marketEndTime = Number(
+            const marketTag = await contract.getTag(marketAddress);
+            const marketEndTime = Number(
               await contract.getEndTime(marketAddress)
             );
-            let now = Math.floor(Date.now() / 1000);
-            let marketInfo = {
+            const now = Math.floor(Date.now() / 1000);
+
+            const marketInfo = {
               Title: marketTitle,
-              PredictionMoney: predictionMoney,
+              PredictionMoney: Number(predictionMoney),
               Tag: marketTag,
             };
 
             if (now <= marketEndTime) {
-              ongoingMarketList.push(marketInfo);
-            } else if (now > marketEndTime) {
-              pastMarketList.push(marketInfo);
+              ongoing.push(marketInfo);
             } else {
-              console.log("Error getting time");
+              past.push(marketInfo);
             }
           }
+
+          setOngoingMarketList(ongoing);
+          setPastMarketList(past);
+
+          // optional: save to localStorage
+          localStorage.setItem("ongoingMarkets", JSON.stringify(ongoing));
+          localStorage.setItem("pastMarkets", JSON.stringify(past));
         }
       } catch (err: any) {
         console.log("Error linking frontend to smart contract", err);
       }
     };
+
+    // load from localStorage first for instant display
+    const storedOngoing = localStorage.getItem("ongoingMarkets");
+    const storedPast = localStorage.getItem("pastMarkets");
+    if (storedOngoing) setOngoingMarketList(JSON.parse(storedOngoing));
+    if (storedPast) setPastMarketList(JSON.parse(storedPast));
+
     getMarkets();
-  }, []);
+  }, [router]);
 
   return (
     <>
@@ -348,37 +519,48 @@ const dashboard = () => {
           <WalletButtonWrapper />
         </header>
         <div className="dashboard-content">
-          <button className="create-btn" onClick={() => {
-            router.push('/new-prediction/');
-          }}>
+          <button
+            className="create-btn"
+            onClick={() => {
+              router.push("/new-prediction/");
+            }}
+          >
             <span style={{ fontSize: "1.5em", marginRight: "0.5em" }}>+</span>
             Create New Prediction
           </button>
+
           <div className="section">
             <div className="section-title">Your Ongoing Predictions</div>
             <div className="section-inner">
-              {ongoingMarketList.map((prediction) => (
+              {ongoingMarketList.map((prediction, index) => (
                 <PredictionCard
+                  key={`ongoing-${index}`}
                   title={prediction.Title}
                   predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
                 />
               ))}
+              {ongoingMarketList.length === 0 && (
+                <div>No ongoing predictions</div>
+              )}
               <div className="see-more">
                 see more <span className="icon">&#8635;</span>
               </div>
             </div>
           </div>
+
           <div className="section">
             <div className="section-title">Your Past Predictions</div>
             <div className="section-inner">
-              {pastMarketList.map((prediction) => (
+              {pastMarketList.map((prediction, index) => (
                 <PredictionCard
+                  key={`past-${index}`}
                   title={prediction.Title}
                   predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
                 />
               ))}
+              {pastMarketList.length === 0 && <div>No past predictions</div>}
               <div className="see-more">
                 see more <span className="icon">&#8635;</span>
               </div>
@@ -390,4 +572,4 @@ const dashboard = () => {
   );
 };
 
-export default dashboard;
+export default Dashboard;

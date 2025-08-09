@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 // Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 import "./CreateMarket.sol";
 
@@ -11,9 +11,16 @@ contract MarketFactory {
 
     mapping(address => uint[]) public userMarkets;
     mapping(uint => address) public markets;
+    event MarketCreated(
+        address indexed creator,
+        address marketAddress,
+        uint marketId
+    );
+
     function storeNewMarket(address creator, address market) public {
         markets[marketCount] = market;
         userMarkets[creator].push(marketCount);
+        emit MarketCreated(creator, market, marketCount);
         marketCount++;
     }
 
@@ -36,6 +43,7 @@ contract MarketFactory {
             _yesPrice,
             _noPrice
         );
+        console.log("Success");
         storeNewMarket(_creator, address(newMarket));
     }
 
