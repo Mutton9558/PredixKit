@@ -1,13 +1,38 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
-import { useRouter } from "next/router";
+import { useParams, useRouter } from "next/navigation";
 import Chart from "chart.js/auto";
-import SearchButtonWrapper from "../components/SearchButton";
-import WalletButtonWrapper from "../components/WalletButton";
+import SearchButtonWrapper from "../../components/SearchButton";
+import WalletButtonWrapper from "../../components/WalletButton";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "creator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "marketAddress",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "marketId",
+        type: "uint256",
+      },
+    ],
+    name: "MarketCreated",
+    type: "event",
+  },
   {
     inputs: [
       {
@@ -26,19 +51,48 @@ const ABI = [
         type: "uint256",
       },
       {
+        internalType: "uint256",
+        name: "_endTime",
+        type: "uint256",
+      },
+      {
         internalType: "address",
         name: "_creator",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_price",
+        name: "_yesPrice",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_noPrice",
         type: "uint256",
       },
     ],
     name: "createMarket",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getAccumulatedAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -63,6 +117,44 @@ const ABI = [
   {
     inputs: [],
     name: "getCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getCreationDate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getEndTime",
     outputs: [
       {
         internalType: "uint256",
@@ -119,7 +211,26 @@ const ABI = [
         type: "address",
       },
     ],
-    name: "getPrice",
+    name: "getNoDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getNoPrice",
     outputs: [
       {
         internalType: "uint256",
@@ -207,6 +318,44 @@ const ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesDist",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "market",
+        type: "address",
+      },
+    ],
+    name: "getYesPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "marketCount",
     outputs: [
@@ -283,7 +432,8 @@ const ABI = [
 ];
 const PredictionDetails = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const params = useParams();
+  const id = params.id;
   const [selectedTab, setSelectedTab] = useState("Buy");
   const [spiritQuantity, setSpiritQuantity] = useState(1);
 
@@ -297,8 +447,22 @@ const PredictionDetails = () => {
   const [noPrice, setNoPrice] = useState(0);
   const [accumulatedMoney, setAccumulatedMoney] = useState(0);
   const [creationDate, setCreationDate] = useState(0);
-  const [yesData, setYesData] = useState([]);
-  const [noData, setNoData] = useState([]);
+  const [yesData, setYesData] = useState<number[]>([]);
+  const [noData, setNoData] = useState<number[]>([]);
+  const [clientDate, setClientDate] = useState<string | null>(null);
+
+  // Ref for the chart canvas
+  const chartRef = useRef<Chart | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (endTime) {
+      const endDate = new Date(endTime * 1000);
+      const dateString = endDate.toLocaleString();
+
+      setClientDate(`${dateString}`);
+    }
+  }, [endTime]);
 
   useEffect(() => {
     const connectSmartContract = async () => {
@@ -308,8 +472,12 @@ const PredictionDetails = () => {
         if (CONTRACT_ADDRESS) {
           const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
           const marketAddress = await contract.getMarketAddressById(id);
-          let totalYes = await contract.getYesAmount(marketAddress);
-          let totalNo: number = await contract.getNoAmount(marketAddress);
+          let totalYes = Number(
+            await contract.getYesAmount(marketAddress).toString()
+          );
+          let totalNo: number = Number(
+            await contract.getNoAmount(marketAddress).toString()
+          );
           setYesCount(totalYes);
           setNoCount(totalNo);
           const totalBets: number = totalYes + totalNo;
@@ -317,14 +485,16 @@ const PredictionDetails = () => {
 
           let mtitle = await contract.getTitle(marketAddress);
           let mtag = await contract.getTag(marketAddress);
-          let mtimeleft = await contract.getEndTime(marketAddress);
+          let mtimeleft = Number(await contract.getEndTime(marketAddress));
           let myesprice = await contract.getYesPrice(marketAddress);
           let mnoprice = await contract.getNoPrice(marketAddress);
           let maccumulateddolla = await contract.getAccumulatedAmount(
             marketAddress
           );
-          let cd = await contract.getCreationDate(marketAddress);
-
+          let cd = Number(await contract.getCreationDate(marketAddress));
+          let yd = await contract.getYesDist(marketAddress);
+          let nd = await contract.getNoDist(marketAddress);
+          console.log(mtimeleft);
           setTitle(mtitle);
           setTag(mtag);
           setEndTime(mtimeleft);
@@ -332,6 +502,8 @@ const PredictionDetails = () => {
           setNoPrice(mnoprice);
           setAccumulatedMoney(maccumulateddolla);
           setCreationDate(cd);
+          setYesData(yd);
+          setNoData(nd);
         }
       } catch (err: any) {
         console.log("Error linking frontend to smart contract", err);
@@ -339,11 +511,12 @@ const PredictionDetails = () => {
     };
 
     connectSmartContract();
-  }, []);
+  }, [id]);
 
-  
+  // Calculate labels for the chart
   let duration = endTime - creationDate;
-  let label = [];
+  console.log(duration);
+  let label: number[] = [];
   if (duration <= 86400) {
     for (let i = 0; duration > 0; i++) {
       label[i] = i;
@@ -355,61 +528,74 @@ const PredictionDetails = () => {
       duration -= 86400;
     }
   }
+  console.log(label);
 
-  const ctx = document.getElementById("chart-diagram") as HTMLCanvasElement;
-  let labels = [];
-  for (let i = 0; i < label.length; i++) {
-    labels[i] = label[i];
-  }
-
-  const data = {
-    labels: labels,
+  // Setup chart data based on yesData and noData (or fallback)
+  const dataChart = {
+    labels: label,
     datasets: [
       {
         label: "Yes Odds",
-        data: [0],
+        data: yesData.length > 0 ? yesData : [0],
         fill: false,
         borderColor: "rgb(75, 192, 192)",
         tension: 0.1,
       },
       {
         label: "No Odds",
-        data: [0],
+        data: noData.length > 0 ? noData : [0],
         fill: false,
         borderColor: "rgba(192, 75, 75, 1)",
         tension: 0.1,
       },
     ],
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: duration <= 86400 ? "Hours" : "Days",
-          },
+  };
+
+  const options = {
+    responsive: true,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: endTime - creationDate <= 86400 ? "Hours" : "Days",
         },
-        y: {
-          title: {
-            display: true,
-            text: "Number of Bets",
-          },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Number of Bets",
         },
       },
     },
   };
-  // if (ctx) {
-  //   const chart = new Chart(ctx, {});
-  // }
+
+  // Create/destroy Chart in useEffect to avoid duplicate charts error
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    // Destroy old chart instance if it exists
+    if (chartRef.current) {
+      chartRef.current.destroy();
+    }
+
+    chartRef.current = new Chart(canvasRef.current, {
+      type: "line",
+      data: dataChart,
+      options: options,
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, [dataChart, options]);
 
   const handleBackToHome = () => {
     router.push("/dashboard");
   };
 
-  const endDate = new Date(endTime * 1000);
-  const dateString = endDate.toLocaleString().toString();
-  let date = dateString.slice(4, 15);
-  let time = dateString.slice(16, 24);
   return (
     <div className="prediction-details-container">
       {/* Header */}
@@ -444,7 +630,7 @@ const PredictionDetails = () => {
           <div className="prediction-info">
             <h2 className="prediction-title">{title}</h2>
             <p className="prediction-deadline">
-              Ends on {date}, {time}
+              Ends on {clientDate ?? "Loading..."}
             </p>
             <div className="prediction-tags">{tag}</div>
           </div>
@@ -453,40 +639,39 @@ const PredictionDetails = () => {
           </div>
         </div>
 
-        {/* Bottom Section */}
         <div className="bottom-section">
-          {/* Total Accumulated Section */}
           <div className="total-section">
             <h3 className="total-title">Total Accumulated:</h3>
             <div className="total-amount">{accumulatedMoney} ETH</div>
             <div className="chart-container">
-              {/* Placeholder for chart - you can integrate a charting library here */}
               <div className="chart-placeholder">
-                <p>Chart will be displayed here</p>
-                <p>Consider using libraries like Chart.js, Recharts, or D3.js</p>
+                <canvas id="chart-diagram" ref={canvasRef}></canvas>
               </div>
             </div>
           </div>
 
-          {/* Spirits Trading Section */}
           <div className="spirits-section">
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
               <button
-                className={`spirits-tab ${selectedTab === 'Buy' ? 'active' : ''}`}
-                onClick={() => setSelectedTab('Buy')}
+                className={`spirits-tab ${
+                  selectedTab === "Buy" ? "active" : ""
+                }`}
+                onClick={() => setSelectedTab("Buy")}
               >
                 Buy
               </button>
               <button
-                className={`spirits-tab ${selectedTab === 'Sell' ? 'active' : ''}`}
-                onClick={() => setSelectedTab('Sell')}
+                className={`spirits-tab ${
+                  selectedTab === "Sell" ? "active" : ""
+                }`}
+                onClick={() => setSelectedTab("Sell")}
               >
                 Sell
               </button>
             </div>
             <div className="spirits-amount">
-              <div className='quantity-amount'>
+              <div className="quantity-amount">
                 <div className="quantity-display">{spiritQuantity}</div>
               </div>
               <div className="quantity-controls">
@@ -498,7 +683,9 @@ const PredictionDetails = () => {
                 </button>
                 <button
                   className="quantity-btn"
-                  onClick={() => setSpiritQuantity(Math.max(1, spiritQuantity - 1))}
+                  onClick={() =>
+                    setSpiritQuantity(Math.max(1, spiritQuantity - 1))
+                  }
                 >
                   ▼
                 </button>
