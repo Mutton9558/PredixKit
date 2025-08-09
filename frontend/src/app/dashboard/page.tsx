@@ -1,10 +1,10 @@
 "use client";
-import React from "react";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 import SearchButtonWrapper from "../components/SearchButton";
 import WalletButtonWrapper from "../components/WalletButton";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
+import PredictionCard from "../components/PredictionCard";
+import { useRouter } from "next/navigation";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
@@ -285,36 +285,9 @@ const ABI = [
 let ongoingMarketList: any[] = [];
 let pastMarketList: any[] = [];
 
-interface PredictionCardProps {
-  title: string;
-  predictionMoney: number;
-  tag: string;
-}
-
-const PredictionCard = ({
-  title,
-  predictionMoney,
-  tag,
-}: PredictionCardProps) => {
-  return (
-    <div className="prediction-card">
-      <div className="prediction-main">
-        <div className="prediction-title">{title}</div>
-        <div className="prediction-buttons">
-          <button className="yes-btn">Yes</button>
-          <button className="no-btn">No</button>
-        </div>
-        <div className="prediction-meta">
-          {predictionMoney}ETH • {tag}
-        </div>
-      </div>
-      <div className="status-box"></div>
-      <div className="bookmark">&#128278;</div>
-    </div>
-  );
-};
 
 const dashboard = () => {
+  const address = localStorage.getItem("userAddress");
   const router = useRouter();
   useEffect(() => {
     const address = localStorage.getItem("userAddress");
@@ -367,6 +340,7 @@ const dashboard = () => {
     };
     getMarkets();
   }, []);
+
   return (
     <>
       <div className="dashboard-bg">
@@ -375,7 +349,9 @@ const dashboard = () => {
           <WalletButtonWrapper />
         </header>
         <div className="dashboard-content">
-          <button className="create-btn">
+          <button className="create-btn" onClick={() => {
+            router.push('/new-prediction/');
+          }}>
             <span style={{ fontSize: "1.5em", marginRight: "0.5em" }}>+</span>
             Create New Prediction
           </button>

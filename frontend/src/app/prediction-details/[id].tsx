@@ -410,7 +410,6 @@ const PredictionDetails = () => {
   const dateString = endDate.toLocaleString().toString();
   let date = dateString.slice(4, 15);
   let time = dateString.slice(16, 24);
-
   return (
     <div className="prediction-details-container">
       {/* Header */}
@@ -422,10 +421,7 @@ const PredictionDetails = () => {
         </div>
         <div className="header-right">
           <SearchButtonWrapper />
-          <div className="deposits-info">
-            <span className="deposits-label">Deposits</span>
-            <span className="deposits-amount">$0.00</span>
-          </div>
+          <WalletButtonWrapper />
         </div>
       </header>
 
@@ -467,10 +463,7 @@ const PredictionDetails = () => {
               {/* Placeholder for chart - you can integrate a charting library here */}
               <div className="chart-placeholder">
                 <p>Chart will be displayed here</p>
-                <p>
-                  Consider using libraries like Chart.js, Recharts, or D3.js
-                </p>
-                <canvas id="chart-diagram"></canvas>
+                <p>Consider using libraries like Chart.js, Recharts, or D3.js</p>
               </div>
             </div>
           </div>
@@ -480,38 +473,36 @@ const PredictionDetails = () => {
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
               <button
-                className={`spirits-tab ${
-                  selectedTab === "Buy" ? "active" : ""
-                }`}
-                onClick={() => setSelectedTab("Buy")}
+                className={`spirits-tab ${selectedTab === 'Buy' ? 'active' : ''}`}
+                onClick={() => setSelectedTab('Buy')}
               >
                 Buy
               </button>
               <button
-                className={`spirits-tab ${
-                  selectedTab === "Sell" ? "active" : ""
-                }`}
-                onClick={() => setSelectedTab("Sell")}
+                className={`spirits-tab ${selectedTab === 'Sell' ? 'active' : ''}`}
+                onClick={() => setSelectedTab('Sell')}
               >
                 Sell
               </button>
             </div>
-            <div className="quantity-controls">
-              <button
-                className="quantity-btn"
-                onClick={() =>
-                  setSpiritQuantity(Math.max(1, spiritQuantity - 1))
-                }
-              >
-                ▲
-              </button>
-              <div className="quantity-display">{spiritQuantity}</div>
-              <button
-                className="quantity-btn"
-                onClick={() => setSpiritQuantity(spiritQuantity + 1)}
-              >
-                ▼
-              </button>
+            <div className="spirits-amount">
+              <div className='quantity-amount'>
+                <div className="quantity-display">{spiritQuantity}</div>
+              </div>
+              <div className="quantity-controls">
+                <button
+                  className="quantity-btn"
+                  onClick={() => setSpiritQuantity(spiritQuantity + 1)}
+                >
+                  ▲
+                </button>
+                <button
+                  className="quantity-btn"
+                  onClick={() => setSpiritQuantity(Math.max(1, spiritQuantity - 1))}
+                >
+                  ▼
+                </button>
+              </div>
             </div>
             <button className="confirm-btn">Confirm</button>
           </div>
