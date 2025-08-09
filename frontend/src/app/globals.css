@@ -737,3 +737,39 @@ header {
   background: #5A1C6D;
   transform: scale(1);
 }
+
+.marketplace {
+  background: #672090;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.createnewmarket {
+  background-color: white;
+  text-decoration: black;
+  padding: 6;
+  font-family: Arial, Helvetica, sans-serif;
+  align-items: center;
+}
+
+.ongoingpredictions {
+  margin-bottom: 8;
+}
+
+.ongoingpredictionsh2 {
+  text-size-adjust: large;
+  margin-bottom: 4;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.pastgoingpredictionsh2 {
+  text-size-adjust: large;
+  margin-bottom: 4;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.marketrec {
+  background: white;
+  padding: 4;
+  text-decoration: black;
+  border-radius: 2;
+}
