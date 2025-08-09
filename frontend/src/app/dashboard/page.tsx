@@ -463,6 +463,7 @@ const Dashboard = () => {
           const past: any[] = [];
 
           for (let i = 0; i < userMarkets.length; i++) {
+            console.log(userMarkets[i]);
             const marketAddress = await contract.getMarketAddressById(
               userMarkets[i]
             );
@@ -481,6 +482,7 @@ const Dashboard = () => {
               Title: marketTitle,
               PredictionMoney: Number(predictionMoney),
               Tag: marketTag,
+              id: Number(userMarkets[i].toString()),
             };
 
             if (now <= marketEndTime) {
@@ -493,7 +495,6 @@ const Dashboard = () => {
           setOngoingMarketList(ongoing);
           setPastMarketList(past);
 
-          // optional: save to localStorage
           localStorage.setItem("ongoingMarkets", JSON.stringify(ongoing));
           localStorage.setItem("pastMarkets", JSON.stringify(past));
         }
@@ -538,6 +539,7 @@ const Dashboard = () => {
                   title={prediction.Title}
                   predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
+                  id={prediction.id}
                 />
               ))}
               {ongoingMarketList.length === 0 && (
@@ -558,6 +560,7 @@ const Dashboard = () => {
                   title={prediction.Title}
                   predictionMoney={prediction.PredictionMoney}
                   tag={prediction.Tag}
+                  id={prediction.id}
                 />
               ))}
               {pastMarketList.length === 0 && <div>No past predictions</div>}

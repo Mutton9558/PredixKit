@@ -13,11 +13,14 @@ const PredictionCard = ({
   title,
   predictionMoney,
   tag,
+  id,
 }: PredictionCardProps) => {
   return (
     <div className="prediction-card">
       <div className="prediction-main">
-        <Link className="prediction-title" href={`/prediction-details/${id}`}>{title}</Link>
+        <Link className="prediction-title" href={`/prediction-details/${id}`}>
+          {title}
+        </Link>
         <div className="prediction-buttons">
           <button className="yes-btn">Yes</button>
           <button className="no-btn">No</button>

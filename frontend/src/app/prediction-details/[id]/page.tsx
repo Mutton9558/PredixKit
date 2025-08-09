@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import { useParams, useRouter } from "next/navigation";
 import Chart from "chart.js/auto";
-import SearchButtonWrapper from "../components/SearchButton";
-import WalletButtonWrapper from "../components/WalletButton";
+import SearchButtonWrapper from "../../components/SearchButton";
+import WalletButtonWrapper from "../../components/WalletButton";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
 const ABI = [
@@ -447,8 +447,22 @@ const PredictionDetails = () => {
   const [noPrice, setNoPrice] = useState(0);
   const [accumulatedMoney, setAccumulatedMoney] = useState(0);
   const [creationDate, setCreationDate] = useState(0);
-  const [yesData, setYesData] = useState([]);
-  const [noData, setNoData] = useState([]);
+  const [yesData, setYesData] = useState<number[]>([]);
+  const [noData, setNoData] = useState<number[]>([]);
+  const [clientDate, setClientDate] = useState<string | null>(null);
+
+  // Ref for the chart canvas
+  const chartRef = useRef<Chart | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (endTime) {
+      const endDate = new Date(endTime * 1000);
+      const dateString = endDate.toLocaleString();
+
+      setClientDate(`${dateString}`);
+    }
+  }, [endTime]);
 
   useEffect(() => {
     const connectSmartContract = async () => {
@@ -458,8 +472,12 @@ const PredictionDetails = () => {
         if (CONTRACT_ADDRESS) {
           const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
           const marketAddress = await contract.getMarketAddressById(id);
-          let totalYes = await contract.getYesAmount(marketAddress);
-          let totalNo: number = await contract.getNoAmount(marketAddress);
+          let totalYes = Number(
+            await contract.getYesAmount(marketAddress).toString()
+          );
+          let totalNo: number = Number(
+            await contract.getNoAmount(marketAddress).toString()
+          );
           setYesCount(totalYes);
           setNoCount(totalNo);
           const totalBets: number = totalYes + totalNo;
@@ -467,16 +485,16 @@ const PredictionDetails = () => {
 
           let mtitle = await contract.getTitle(marketAddress);
           let mtag = await contract.getTag(marketAddress);
-          let mtimeleft = await contract.getEndTime(marketAddress);
+          let mtimeleft = Number(await contract.getEndTime(marketAddress));
           let myesprice = await contract.getYesPrice(marketAddress);
           let mnoprice = await contract.getNoPrice(marketAddress);
           let maccumulateddolla = await contract.getAccumulatedAmount(
             marketAddress
           );
-          let cd = await contract.getCreationDate(marketAddress);
+          let cd = Number(await contract.getCreationDate(marketAddress));
           let yd = await contract.getYesDist(marketAddress);
           let nd = await contract.getNoDist(marketAddress);
-
+          console.log(mtimeleft);
           setTitle(mtitle);
           setTag(mtag);
           setEndTime(mtimeleft);
@@ -493,10 +511,12 @@ const PredictionDetails = () => {
     };
 
     connectSmartContract();
-  }, []);
+  }, [id]);
 
+  // Calculate labels for the chart
   let duration = endTime - creationDate;
-  let label = [];
+  console.log(duration);
+  let label: number[] = [];
   if (duration <= 86400) {
     for (let i = 0; duration > 0; i++) {
       label[i] = i;
@@ -508,64 +528,74 @@ const PredictionDetails = () => {
       duration -= 86400;
     }
   }
+  console.log(label);
 
-  const ctx = document.getElementById("chart-diagram") as HTMLCanvasElement;
-  let labels = [];
-  for (let i = 0; i < label.length; i++) {
-    labels[i] = label[i];
-  }
-
+  // Setup chart data based on yesData and noData (or fallback)
   const dataChart = {
-    labels: labels,
+    labels: label,
     datasets: [
       {
         label: "Yes Odds",
-        data: [0],
+        data: yesData.length > 0 ? yesData : [0],
         fill: false,
         borderColor: "rgb(75, 192, 192)",
         tension: 0.1,
       },
       {
         label: "No Odds",
-        data: [0],
+        data: noData.length > 0 ? noData : [0],
         fill: false,
         borderColor: "rgba(192, 75, 75, 1)",
         tension: 0.1,
       },
     ],
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: duration <= 86400 ? "Hours" : "Days",
-          },
+  };
+
+  const options = {
+    responsive: true,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: endTime - creationDate <= 86400 ? "Hours" : "Days",
         },
-        y: {
-          title: {
-            display: true,
-            text: "Number of Bets",
-          },
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Number of Bets",
         },
       },
     },
   };
-  if (ctx) {
-    const chart = new Chart(ctx, {
+
+  // Create/destroy Chart in useEffect to avoid duplicate charts error
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    // Destroy old chart instance if it exists
+    if (chartRef.current) {
+      chartRef.current.destroy();
+    }
+
+    chartRef.current = new Chart(canvasRef.current, {
       type: "line",
       data: dataChart,
+      options: options,
     });
-  }
+
+    // Cleanup on unmount
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, [dataChart, options]);
 
   const handleBackToHome = () => {
     router.push("/dashboard");
   };
 
-  const endDate = new Date(endTime * 1000);
-  const dateString = endDate.toLocaleString().toString();
-  let date = dateString.slice(4, 15);
-  let time = dateString.slice(16, 24);
   return (
     <div className="prediction-details-container">
       {/* Header */}
@@ -600,7 +630,7 @@ const PredictionDetails = () => {
           <div className="prediction-info">
             <h2 className="prediction-title">{title}</h2>
             <p className="prediction-deadline">
-              Ends on {date}, {time}
+              Ends on {clientDate ?? "Loading..."}
             </p>
             <div className="prediction-tags">{tag}</div>
           </div>
@@ -609,21 +639,17 @@ const PredictionDetails = () => {
           </div>
         </div>
 
-        {/* Bottom Section */}
         <div className="bottom-section">
-          {/* Total Accumulated Section */}
           <div className="total-section">
             <h3 className="total-title">Total Accumulated:</h3>
             <div className="total-amount">{accumulatedMoney} ETH</div>
             <div className="chart-container">
-              {/* Placeholder for chart - you can integrate a charting library here */}
               <div className="chart-placeholder">
-                <canvas id="chart-diagram"></canvas>
+                <canvas id="chart-diagram" ref={canvasRef}></canvas>
               </div>
             </div>
           </div>
 
-          {/* Spirits Trading Section */}
           <div className="spirits-section">
             <h3 className="spirits-title">Spirits</h3>
             <div className="spirits-tabs">
