@@ -481,6 +481,7 @@ const Dashboard = () => {
               Title: marketTitle,
               PredictionMoney: Number(predictionMoney),
               Tag: marketTag,
+              id: userMarkets[i],
             };
 
             if (now <= marketEndTime) {
@@ -493,7 +494,6 @@ const Dashboard = () => {
           setOngoingMarketList(ongoing);
           setPastMarketList(past);
 
-          // optional: save to localStorage
           localStorage.setItem("ongoingMarkets", JSON.stringify(ongoing));
           localStorage.setItem("pastMarkets", JSON.stringify(past));
         }
