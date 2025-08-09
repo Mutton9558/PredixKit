@@ -501,7 +501,8 @@ interface MarketInfo {
 
 const marketplace = () => {
   const router = useRouter();
-  const [marketList, setMarketList] = useState<MarketInfo[]>([]);
+  const [ongoing, setOngoing] = useState<any[]>([]);
+
   useEffect(() => {
     const address = localStorage.getItem("userAddress");
     if (!address) {
@@ -525,33 +526,25 @@ const marketplace = () => {
           const market_arr: any = [];
           const marketCount = await contract.getCount();
           for (let i = 0; i < marketCount; i++) {
-            if (market_arr.length >= 10) {
-              break;
-            }
             let marketAddress = await contract.getMarketAddressById(i);
             let marketTitle = await contract.getTitle(marketAddress);
-            let predictionMoney = await contract.getAccumulatedAmount(
-              marketAddress
-            );
+            let predictionMoney = await contract.getAccumulatedAmount(marketAddress);
             let marketTag = await contract.getTag(marketAddress);
-            let marketEndTime = Number(
-              await contract.getEndTime(marketAddress)
-            );
+            let marketEndTime = Number(await contract.getEndTime(marketAddress));
             let now = Math.floor(Date.now() / 1000);
 
             if (now <= marketEndTime) {
-              let marketInfo = {
+              ongoing.push({
+                Address: marketAddress,
                 Title: marketTitle,
                 PredictionMoney: Number(predictionMoney),
                 Tag: marketTag,
                 id: i,
-              };
-
-              market_arr.push(marketInfo);
+              });
             }
           }
 
-          setMarketList(market_arr);
+          setOngoing(ongoing);
         }
       } catch (err: any) {
         console.log("Error linking frontend to smart contract", err);
@@ -566,15 +559,17 @@ const marketplace = () => {
         <WalletButtonWrapper />
       </header>
       <div className="marketplace-container">
-        {marketList.map((prediction, index) => (
-          <PredictionCard
-            key={`ongoing-${index}`}
-            title={prediction.Title}
-            predictionMoney={prediction.PredictionMoney}
-            tag={prediction.Tag}
-            id={prediction.id}
-          />
-        ))}
+        <div className="marketplace-placeholder">
+          {ongoing.map((prediction, index) => (
+            <PredictionCard
+              key={`ongoing-${index}`}
+              title={prediction.Title}
+              predictionMoney={prediction.PredictionMoney}
+              tag={prediction.Tag}
+              id={prediction.id}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
