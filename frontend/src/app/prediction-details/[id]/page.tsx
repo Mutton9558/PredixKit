@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect, useRef } from "react";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import { useParams, useRouter } from "next/navigation";
@@ -513,6 +513,7 @@ const PredictionDetails = () => {
   const [noData, setNoData] = useState<number[]>([]);
   const [clientDate, setClientDate] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState("Yes");
+  const [Expired, setExpired] = useState(false);
 
   // Ref for the chart canvas
   const chartRef = useRef<Chart | null>(null);
@@ -557,22 +558,6 @@ const PredictionDetails = () => {
       const dateString = endDate.toLocaleString();
 
       setClientDate(`${dateString}`);
-
-      const resultCont = document.getElementById("result-card");
-      if (localStorage.getItem("userAddress") != contractOwner && resultCont) {
-        resultCont.hidden = true;
-      }
-
-      const epochSeconds = Math.floor(Date.now() / 1000);
-
-      console.log(endTime - epochSeconds);
-      if (endTime - epochSeconds > 0) {
-        const resultBtn = document.getElementById(
-          "result-btn"
-        ) as HTMLButtonElement;
-        resultBtn.disabled = true;
-        resultBtn.classList.add("disabled");
-      }
     }
   }, [endTime]);
 
@@ -603,7 +588,6 @@ const PredictionDetails = () => {
           let mtitle = await contract.getTitle(marketAddress);
           let mtag = await contract.getTag(marketAddress);
           let mtimeleft = Number(await contract.getEndTime(marketAddress));
-          console.log(mtimeleft);
           let myesprice = await contract.getYesPrice(marketAddress);
           let mnoprice = await contract.getNoPrice(marketAddress);
           let maccumulateddolla = await contract.getAccumulatedAmount(
@@ -611,7 +595,6 @@ const PredictionDetails = () => {
           );
           let cd = Number(await contract.getCreationDate(marketAddress));
           let yd = await contract.getYesDist(marketAddress);
-          console.log("yesData item:", yd[0], typeof yd[0]);
           let nd = await contract.getNoDist(marketAddress);
           const ydNum = convertBigNumberArrayToNumberArray(yd);
           const ndNum = convertBigNumberArrayToNumberArray(nd);
@@ -619,7 +602,6 @@ const PredictionDetails = () => {
           setTitle(mtitle);
           setTag(mtag);
           setEndTime(mtimeleft);
-          console.log(endTime);
           setYesPrice(myesprice);
           setNoPrice(mnoprice);
           setAccumulatedMoney(maccumulateddolla);
@@ -638,6 +620,7 @@ const PredictionDetails = () => {
 
   // Calculate labels for the chart
   let duration = endTime - creationDate;
+  console.log(duration);
   let label: number[] = [];
   if (duration <= 86400) {
     for (let i = 0; duration > 0; i++) {
@@ -650,6 +633,7 @@ const PredictionDetails = () => {
       duration -= 86400;
     }
   }
+  console.log(label);
 
   // Setup chart data based on yesData and noData (or fallback)
   const dataChart = {
@@ -717,6 +701,36 @@ const PredictionDetails = () => {
     router.push("/dashboard");
   };
 
+  useEffect(() => {
+    const check = () => {
+      setExpired(Date.now() >= endTime * 1000);
+    };
+    check();
+    const id = setInterval(check, 1000);
+    return () => clearInterval(id);
+  }, [endTime]);
+
+  const ResultSection = () => {
+    return (
+      <div className="result-section">
+        {Expired ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1em' }}>
+            <div className="status-indicator-ended">
+              <p>Ended</p>
+            </div>
+            <div className="result">
+              Winners:{" "}
+            </div>
+          </div>
+        ) : (
+          <div className="status-indicator-ongoing">
+            <p>Ongoing</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="prediction-details-container">
       {/* Header */}
@@ -736,18 +750,6 @@ const PredictionDetails = () => {
       <div className="prediction-details-content">
         {/* Prediction Card */}
         <div className="prediction-details-card">
-          <div className="prediction-image">
-            <img
-              src="/api/placeholder/400/200"
-              alt="Prediction"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "1em",
-              }}
-            />
-          </div>
           <div className="prediction-info">
             <h2 className="prediction-title">{title}</h2>
             <p className="prediction-deadline">
@@ -756,16 +758,14 @@ const PredictionDetails = () => {
             <div className="prediction-tags">{tag}</div>
           </div>
           <div className="prediction-status">
-            <div className="status-indicator"></div>
+            <ResultSection />
           </div>
         </div>
 
         <div className="bottom-section">
           <div className="total-section">
             <h3 className="total-title">Total Accumulated:</h3>
-            <div className="total-amount">
-              {BigInt(accumulatedMoney) / BigInt(1000000000000000000)} ETH
-            </div>
+            <div className="total-amount">{accumulatedMoney} ETH</div>
             <div className="chart-container">
               <div className="chart-placeholder">
                 <canvas id="chart-diagram" ref={canvasRef}></canvas>
@@ -773,65 +773,71 @@ const PredictionDetails = () => {
             </div>
           </div>
 
-          {/* <div className="spirits-section">
-            <h3 className="spirits-title">Spirits</h3>
-            <div className="spirits-tabs">
-              <button
-                className={`spirits-tab ${
-                  selectedTab === "Buy" ? "active" : ""
-                }`}
-                onClick={() => setSelectedTab("Buy")}
-              >
-                Buy
-              </button>
-              <button
-                className={`spirits-tab ${
-                  selectedTab === "Sell" ? "active" : ""
-                }`}
-                onClick={() => setSelectedTab("Sell")}
-              >
-                Sell
-              </button>
-            </div>
-            <div className="spirits-amount">
-              <div className="quantity-amount">
-                <div className="quantity-display">{spiritQuantity}</div>
-              </div>
-              <div className="quantity-controls">
+          {Date.now() / 1000 < endTime && localStorage.getItem("user") !== contractOwner ? (
+            <div className="spirits-section">
+              <h3 className="spirits-title">Spirits</h3>
+              <div className="spirits-tabs">
                 <button
-                  className="quantity-btn"
-                  onClick={() => setSpiritQuantity(spiritQuantity + 1)}
+                  className={`spirits-tab ${selectedTab === "Buy" ? "active" : ""
+                    }`}
+                  onClick={() => setSelectedTab("Buy")}
                 >
-                  ▲
+                  Buy
                 </button>
                 <button
-                  className="quantity-btn"
-                  onClick={() =>
-                    setSpiritQuantity(Math.max(1, spiritQuantity - 1))
-                  }
+                  className={`spirits-tab ${selectedTab === "Sell" ? "active" : ""
+                    }`}
+                  onClick={() => setSelectedTab("Sell")}
                 >
-                  ▼
+                  Sell
+                </button>
+              </div>
+              <div className="spirits-amount">
+                <div className="quantity-amount">
+                  <div className="quantity-display">{spiritQuantity}</div>
+                </div>
+                <div className="quantity-controls">
+                  <button
+                    className="quantity-btn"
+                    onClick={() => setSpiritQuantity(spiritQuantity + 1)}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    className="quantity-btn"
+                    onClick={() =>
+                      setSpiritQuantity(Math.max(1, spiritQuantity - 1))
+                    }
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              <button className="confirm-btn">Confirm</button>
+            </div>
+          ) : (
+            <div className="prediction-details-card" id="result-card">
+              <div className="prediction-info">
+                <h2 className="prediction-title">Result:</h2>
+                <p className="prediction-deadline">Choose a result:</p>
+                <div id="result-switch">
+                  <label className="switch">
+                    <h5>Yes</h5>
+                    <input type="checkbox"></input>
+                    <span className="slider round"></span>
+                  </label>
+                  <label className="switch">
+                    <h5>No</h5>
+                    <input type="checkbox"></input>
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+                <button className="confirm-btn" id="result-btn">
+                  Confirm
                 </button>
               </div>
             </div>
-            <button className="confirm-btn">Confirm</button>
-          </div> */}
-        </div>
-        <div className="prediction-details-card" id="result-card">
-          <div className="prediction-info">
-            <h2 className="prediction-title">Result:</h2>
-            <p className="prediction-deadline">Choose a result:</p>
-            <div id="result-switch">
-              <label className="switch">
-                <h5>yes tick</h5>
-                <input type="checkbox"></input>
-                <span className="slider round"></span>
-              </label>
-            </div>
-            <button className="confirm-btn" id="result-btn">
-              Confirm
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
