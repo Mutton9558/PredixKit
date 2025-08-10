@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { ethers, BrowserProvider, JsonRpcSigner } from "ethers";
 import { useParams, useRouter } from "next/navigation";
@@ -714,13 +714,18 @@ const PredictionDetails = () => {
     return (
       <div className="result-section">
         {Expired ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1em' }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1em",
+            }}
+          >
             <div className="status-indicator-ended">
               <p>Ended</p>
             </div>
-            <div className="result">
-              Winners:{" "}
-            </div>
+            <div className="result">Winners: </div>
           </div>
         ) : (
           <div className="status-indicator-ongoing">
@@ -765,7 +770,9 @@ const PredictionDetails = () => {
         <div className="bottom-section">
           <div className="total-section">
             <h3 className="total-title">Total Accumulated:</h3>
-            <div className="total-amount">{accumulatedMoney} ETH</div>
+            <div className="total-amount">
+              {BigInt(accumulatedMoney) / BigInt(1000000000000000000)} ETH
+            </div>
             <div className="chart-container">
               <div className="chart-placeholder">
                 <canvas id="chart-diagram" ref={canvasRef}></canvas>
@@ -773,48 +780,9 @@ const PredictionDetails = () => {
             </div>
           </div>
 
-          {Date.now() / 1000 < endTime && localStorage.getItem("user") !== contractOwner ? (
-            <div className="spirits-section">
-              <h3 className="spirits-title">Spirits</h3>
-              <div className="spirits-tabs">
-                <button
-                  className={`spirits-tab ${selectedTab === "Buy" ? "active" : ""
-                    }`}
-                  onClick={() => setSelectedTab("Buy")}
-                >
-                  Buy
-                </button>
-                <button
-                  className={`spirits-tab ${selectedTab === "Sell" ? "active" : ""
-                    }`}
-                  onClick={() => setSelectedTab("Sell")}
-                >
-                  Sell
-                </button>
-              </div>
-              <div className="spirits-amount">
-                <div className="quantity-amount">
-                  <div className="quantity-display">{spiritQuantity}</div>
-                </div>
-                <div className="quantity-controls">
-                  <button
-                    className="quantity-btn"
-                    onClick={() => setSpiritQuantity(spiritQuantity + 1)}
-                  >
-                    ▲
-                  </button>
-                  <button
-                    className="quantity-btn"
-                    onClick={() =>
-                      setSpiritQuantity(Math.max(1, spiritQuantity - 1))
-                    }
-                  >
-                    ▼
-                  </button>
-                </div>
-              </div>
-              <button className="confirm-btn">Confirm</button>
-            </div>
+          {Date.now() / 1000 < endTime &&
+          localStorage.getItem("user") !== contractOwner ? (
+            <div></div>
           ) : (
             <div className="prediction-details-card" id="result-card">
               <div className="prediction-info">
